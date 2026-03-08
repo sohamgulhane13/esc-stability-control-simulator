@@ -1,0 +1,14 @@
+CC=gcc
+CFLAGS=-Wall -O2
+LIBS=-lpaho-mqtt3c -lm -pthread
+
+all: esc_mqtt mqtt_pub
+
+esc_mqtt: ESC_Traction_Simulation.c
+	$(CC) $(CFLAGS) -o esc_mqtt ESC_MQTT_EKF_MQTT.c $(LIBS)
+
+mqtt_pub: mqtt_publisher.c
+	$(CC) $(CFLAGS) -o mqtt_pub mqtt_publisher.c $(LIBS)
+
+clean:
+	rm -f esc_mqtt mqtt_pub *.o
