@@ -1,0 +1,23 @@
+# Compiled binaries
+*.exe
+*.out
+*.o
+
+# Build artifacts
+esc_sim
+esc_mqtt
+
+# Logs
+esc_report.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Python cache (if any scripts added)
+__pycache__/
+*.pyc
