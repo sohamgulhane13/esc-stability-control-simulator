@@ -1,58 +1,116 @@
-# ESC EKF Fusion + Safety Supervisor
+
+
+# 🚗 ESC EKF Fusion + Safety Supervisor
 
 ### Electronic Stability Control Simulation in C
 
-This project implements a realistic simulation of an **Electronic Stability Control (ESC)** unit using:
+This project implements a **realistic Electronic Stability Control (ESC) simulator** using **multi-sensor fusion and an Extended Kalman Filter (EKF)** to estimate vehicle dynamics, detect skid conditions, and activate **ESC Safe Mode** when stability risks occur.
 
-- Multi-sensor fusion
-- Extended Kalman Filter (EKF)
-- Sensor health monitoring
-- Traction and skid detection
-- Safety Supervisor with Safe Mode
-- Human-readable reporting
-
-The goal is to estimate the car’s dynamic state, detect skids, and trigger ESC Safe Mode when necessary.
+The simulator demonstrates how modern automotive safety systems combine **sensor data, filtering algorithms, and safety supervision logic** to maintain vehicle stability.
 
 ---
 
-# ⚙️ Features
+# 📌 Project Overview
 
-- Reads 5 automotive sensors:
-  - Gyroscope (yaw rate)
-  - Wheel speed
-  - Lateral accelerometer
-  - Vision curvature (lane-based)
-  - GPS curvature
-- Automatic sensor fault detection (timeout, stuck, invalid)
-- EKF-based state estimation (heading, speed, curvature)
-- Lateral force computation & skid prediction
-- Safe Mode activation for:
-  - Sensor failures
-  - Large inconsistencies
-  - Watchdog timeouts
-  - Near-skid conditions
-- Human-readable logs saved to `esc_report.txt`
-- Live console summaries during simulation
+Electronic Stability Control (ESC) is a critical automotive safety system that prevents loss of control during sharp turns or slippery road conditions.
+
+This project simulates an ESC unit capable of:
+
+* Fusing multiple vehicle sensors
+* Estimating vehicle motion using EKF
+* Detecting potential skid conditions
+* Monitoring sensor health
+* Activating Safe Mode during instability
+* Logging diagnostic reports
+
+The implementation models **core logic used in automotive Electronic Control Units (ECUs)**.
+
+---
+
+# ⚙️ Key Features
+
+✔ Multi-sensor fusion for vehicle state estimation
+✔ **Extended Kalman Filter (EKF)** implementation
+✔ Sensor fault detection and health monitoring
+✔ Skid detection using traction analysis
+✔ ESC **Safe Mode activation** for critical conditions
+✔ Human-readable diagnostic logging
+✔ Interactive and batch simulation modes
+✔ Optional **MQTT telemetry publishing**
+
+---
+
+# 🧠 Sensors Used in Simulation
+
+The system processes data from simulated automotive sensors:
+
+| Sensor                | Purpose                                     |
+| --------------------- | ------------------------------------------- |
+| Gyroscope             | Measures yaw rate                           |
+| Wheel Speed           | Determines vehicle velocity                 |
+| Lateral Accelerometer | Measures sideways acceleration              |
+| Vision Curvature      | Road curvature estimate from lane detection |
+| GPS Curvature         | Road curvature estimate from GPS            |
+
+These sensors are fused to estimate:
+
+* vehicle heading
+* velocity
+* turning curvature
+
+---
+
+# 🧠 System Pipeline
+
+```
+Sensor Inputs
+      ↓
+Sensor Health Monitoring
+      ↓
+Extended Kalman Filter
+      ↓
+Vehicle State Estimation
+      ↓
+Skid Detection
+      ↓
+Safety Supervisor
+      ↓
+ESC Safe Mode
+```
 
 ---
 
 # 📁 Project Structure
 
-| File                        | Description                    |
-| --------------------------- | ------------------------------ |
-| `ESC_Traction_Simulation.c` | Main C source file             |
-| `demo_sensors.csv`          | Example dataset for batch mode |
-| `esc_report.txt`            | Log file (auto-generated)      |
+```
+esc-stability-control-simulator
+│
+├── ESC_Traction_Simulation.c
+├── mqtt_publisher.c
+├── demo_sensors.csv
+├── MakeFile
+├── README.md
+├── .gitignore
+└── paho.mqtt.c
+```
+
+| File                      | Description                       |
+| ------------------------- | --------------------------------- |
+| ESC_Traction_Simulation.c | Main ESC simulation program       |
+| mqtt_publisher.c          | Optional MQTT telemetry publisher |
+| demo_sensors.csv          | Example dataset for batch testing |
+| MakeFile                  | Build configuration               |
+| paho.mqtt.c               | Eclipse Paho MQTT client library  |
 
 ---
 
 # 🛠 Requirements
 
-- **GCC compiler**
-- **Linux / Ubuntu / WSL** (recommended)
-- No external libraries needed
+* GCC Compiler
+* Linux / Ubuntu / WSL recommended
+* No external dependencies required
 
-Check if GCC is installed:
+Check GCC installation:
 
 ```bash
 gcc --version
@@ -62,7 +120,7 @@ gcc --version
 
 # ▶️ Compilation
 
-Open a terminal in the project folder and run:
+Compile the simulator:
 
 ```bash
 gcc -o esc_sim ESC_Traction_Simulation.c -lm
@@ -76,187 +134,154 @@ esc_sim
 
 ---
 
-# 🚀 Running the Program
+# 🚀 Running the Simulation
 
-Run:
+Run the program:
 
 ```bash
 ./esc_sim
 ```
 
-You will see:
+Menu options will appear:
 
 ```
-Menu:
-  1) Interactive (simulate sensors)
-  2) Batch CSV
-  3) View report tail
-  4) Exit
+1) Interactive sensor simulation
+2) Batch CSV simulation
+3) View report tail
+4) Exit
 ```
 
 ---
 
 # 1️⃣ Interactive Mode
 
-Choose:
+Manually simulate sensor inputs.
 
-```
-1
-```
-
-Enter sensor values manually:
+Example input:
 
 ```
 gyro accel wheel vision_kappa vision_conf gps_kappa gps_conf abs_flag
 ```
 
-Example:
+Example values:
 
 ```
 0.1 0.5 12 0.03 0.8 0.02 0.7 0
 ```
 
-You may enter `-1` for missing data:
+Missing sensors can be simulated using:
 
 ```
--1 0.3 11 -1 -1 0.01 0.6 0
-```
-
-Stop with:
-
-```
-Continue? (y/n): n
+-1
 ```
 
 ---
 
 # 2️⃣ Batch CSV Mode
 
-Choose:
+Run simulation using recorded data.
 
-```
-2
-```
-
-Provide the dataset (included):
+Example:
 
 ```
 CSV path: demo_sensors.csv
-```
-
-Choose road condition:
-
-```
 Road condition (1 Dry,2 Wet,3 Snow,4 High-grip): 2
 ```
 
-Output example:
+Example output:
 
 ```
 t=0.25s | v=1.46 m/s | R=66.86 m | a_lat=0.03 | usage=0.01 | safe_mode=NO
 ```
 
-At the end, the program auto-displays the last part of the log.
-
 ---
 
-# 3️⃣ View Report Tail
+# 📄 Diagnostic Output
 
-Choose:
-
-```
-3
-```
-
-This prints the latest section of:
+Simulation logs are written to:
 
 ```
 esc_report.txt
 ```
 
-To view the whole file manually:
+Each log entry includes:
+
+* timestamp
+* sensor availability
+* EKF state estimates
+* traction usage
+* stability status
+* Safe Mode activation reason
+* innovation diagnostics
+
+---
+
+# 📡 MQTT Telemetry (Optional)
+
+The project includes an MQTT publisher for streaming ESC telemetry.
+
+This allows simulation data to be sent to:
+
+* remote dashboards
+* vehicle telemetry systems
+* IoT monitoring tools
+
+Uses **Eclipse Paho MQTT C client**.
+
+---
+
+# 🎯 Learning Outcomes
+
+This project demonstrates practical understanding of:
+
+* Automotive safety systems
+* Vehicle dynamics modeling
+* Multi-sensor fusion
+* Extended Kalman Filters
+* Embedded control system design
+* Real-time safety supervision
+
+---
+
+# 🔮 Future Improvements
+
+Possible enhancements include:
+
+* Integration with **CAN bus vehicle data**
+* Real-time graphical vehicle simulation
+* Advanced tire friction models
+* Hardware deployment on embedded controllers
+* Integration with **ADAS modules**
+
+---
+
+# 👨‍💻 Contributors
+
+* Manas Kotian
+* Sujit Nirmal
+* Soham Gulhane
+* Aadesh Khamkar
+
+Guide: **Prof. Usha Jadhav**
+
+---
+
+# ⭐ Support
+
+If you found this project useful, consider **starring the repository ⭐**
+
+---
+
+# Clone with Submodules
+
+This project includes the **Eclipse Paho MQTT library**.
+
+Clone using:
 
 ```bash
-cat esc_report.txt
+git clone --recurse-submodules https://github.com/sohamgulhane13/esc-stability-control-simulator.git
 ```
 
 ---
 
-# 📄 Output: esc_report.txt
 
-The report includes:
-
-- Timestamp
-- Sensor availability
-- Sensor confidence
-- EKF state (psi, v, kappa)
-- Turn radius
-- Lateral acceleration
-- Traction usage (%)
-- Whether ESC Safe Mode is active
-- Reason for Safe Mode
-- Sensor fault status
-- Innovation diagnostics
-
-This file is automatically appended with every timestep.
-
----
-
-# 📘 How the System Works (Short Explanation)
-
-1. **Sensor Health Check**  
-   Detects missing, stuck, or faulty sensors and disables them.
-
-2. **EKF Prediction**  
-   Predicts heading, speed, and curvature.
-
-3. **EKF Update**  
-   Fuses all healthy sensors to refine state estimation.
-
-4. **Skid Detection**  
-   Calculates lateral acceleration and compares it to tyre grip.
-
-5. **Safe Mode Activation**  
-   Triggered when sensors fail or skid likelihood is high.
-
-6. **Logging**  
-   A human-readable diagnostic block is appended to `esc_report.txt`.
-
-7. **Live Summary**  
-   One-line status updates are printed for each timestep.
-
----
-
-# ❗ Troubleshooting
-
-### Recompile:
-
-```bash
-gcc -o esc_sim ESC_Traction_Simulation.c -lm
-```
-
-### Ensure CSV file is in same folder:
-
-```bash
-ls
-```
-
-### Move file if needed:
-
-```bash
-mv demo_sensors.csv .
-```
-
----
-
-# 🎉 You're Ready to Use the ESC Simulator
-
-For questions or debugging, check:
-
-- `esc_report.txt`
-- Terminal summary lines
-- Code comments inside the `.c` file
-
----
-
-If you'd like a **GitHub-optimized README**, **PDF version**, or **auto-generated Doxygen-style documentation**, just ask!
